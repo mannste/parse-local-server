@@ -1,0 +1,60 @@
+version: "3"
+services:
+    parse-server-mongo:
+        image: mongo
+        volumes:
+            - ./db:/data/db
+        networks:
+            - parse-server-network
+
+    parse-server-live:
+        build: ./parse-server-live
+        environment:
+            - APP_ID=default
+            - MASTER_KEY=default
+            - GCM_SENDER_ID=gcm_id
+            - GCM_API_KEY=gcm_key
+            - APP_BUNDLE_ID=bundle_id
+            - IS_PRODUCTION=false
+            - SERVER_URL=http://localhost:1337/parse
+            - DATABASE_URI=mongodb://parse-server-mongo/
+            - REDIS_URL=http://redis:6379
+        ports:
+            - 1338:1337
+        networks:
+            - parse-server-network
+
+    parse-server:
+        build: ./parse-server
+        environment:
+            - APP_ID=default
+            - MASTER_KEY=default
+            - GCM_SENDER_ID=gcm_id
+            - GCM_API_KEY=gcm_key
+            - APP_BUNDLE_ID=bundle_id
+            - IS_PRODUCTION=false
+            - SERVER_URL=http://localhost:1337/parse
+            - DATABASE_URI=mongodb://parse-server-mongo/
+            - REDIS_URL=http://redis:6379
+        ports:
+            - 1337:1337
+        networks:
+            - parse-server-network
+
+    parse-dashboard:
+        build: ./parse-dashboard
+        environment:
+            - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=1
+        ports:
+            - 4040:4040
+        networks:
+            - parse-server-network
+
+    redis:
+        image:
+            redis
+        networks:
+            - parse-server-network
+
+networks:
+    parse-server-network:
